@@ -1,4 +1,4 @@
-﻿<!--
+<!--
   =============================================================================
   MeshLink
   Secure Offline Mesh Communication Platform
@@ -17,53 +17,60 @@
   Author  : Ayshi Shannidhya Panda
   =============================================================================
 -->
+
 # MeshLink
 
 **Next-Generation Offline Mesh Communication Platform**
 
-[![CI](https://github.com/your-org/meshlink/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/meshlink/actions)
+[![CI](https://github.com/ayshishannidhya/MeshLink/actions/workflows/ci.yml/badge.svg)](https://github.com/ayshishannidhya/MeshLink/actions)
 [![API](https://img.shields.io/badge/API-29%2B-brightgreen.svg)](https://android-arsenal.com/api?level=29)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 
 MeshLink enables secure, decentralized peer-to-peer messaging **without internet, SIM cards, or cloud servers**. Every device automatically becomes a node in an intelligent mesh network, routing encrypted messages through nearby peers.
 
-## âœ¨ Key Features
+---
+
+## Key Features
 
 | Feature | Description |
 |---------|-------------|
-| ðŸ”— **Multi-Transport Mesh** | BLE + Wi-Fi Direct + LAN â€” automatic failover |
-| ðŸ” **End-to-End Encryption** | Noise XX handshake, ChaCha20-Poly1305, X25519 |
-| ðŸ“¦ **Store & Forward** | Delay-tolerant networking â€” messages hop through couriers |
-| ðŸ§  **Intelligent Routing** | 8-metric weighted scoring (RSSI, battery, latency, reputation...) |
-| ðŸš¨ **Emergency SOS** | Priority broadcasts that bypass all queues |
-| ðŸ—ºï¸ **Mesh Map** | Real-time topology visualization |
-| ðŸ›¡ï¸ **Anti-Spam** | Per-peer rate limiting + reputation system |
-| ðŸ”‹ **Battery Optimized** | Adaptive duty cycling, low-power scanning modes |
-| ðŸ•µï¸ **Privacy First** | No phone number, no email, no read receipts |
+| **Multi-Transport Mesh** | BLE + Wi-Fi Direct + LAN with automatic failover |
+| **End-to-End Encryption** | Noise XX handshake, ChaCha20-Poly1305, X25519 |
+| **Store & Forward** | Delay-tolerant networking - messages hop through couriers |
+| **Intelligent Routing** | 8-metric weighted scoring (RSSI, battery, latency, reputation) |
+| **Emergency SOS** | Priority broadcasts that bypass all queues |
+| **Mesh Map** | Real-time topology visualization |
+| **Anti-Spam** | Per-peer rate limiting + reputation system |
+| **Battery Optimized** | Adaptive duty cycling, low-power scanning modes |
+| **Privacy First** | No phone number, no email, no read receipts |
 
-## ðŸ“ Architecture
+---
+
+## Architecture
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚              Jetpack Compose UI             â”‚
-â”‚         Material 3 + Dynamic Color          â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚               ViewModels (MVVM)             â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚          Use Cases (Clean Architecture)     â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚     Repositories + Room/SQLCipher           â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚  Crypto  â”‚  Router  â”‚   Store & Forward     â”‚
-â”‚  Engine  â”‚  Engine  â”‚       (DTN)           â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚              Transport Manager              â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚  BLE   â”‚  Wi-Fi Direct â”‚       LAN         â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
++---------------------------------------------+
+|              Jetpack Compose UI              |
+|         Material 3 + Dynamic Color           |
++---------------------------------------------+
+|               ViewModels (MVVM)              |
++---------------------------------------------+
+|          Use Cases (Clean Architecture)      |
++---------------------------------------------+
+|     Repositories + Room/SQLCipher            |
++----------+----------+-----------------------+
+|  Crypto   |  Router  |   Store & Forward     |
+|  Engine   |  Engine  |       (DTN)           |
++----------+----------+-----------------------+
+|              Transport Manager               |
++--------+--------------+---------------------+
+|  BLE   |  Wi-Fi Direct |       LAN           |
++--------+--------------+---------------------+
 ```
 
-## ðŸ› ï¸ Tech Stack
+---
+
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -77,35 +84,40 @@ MeshLink enables secure, decentralized peer-to-peer messaging **without internet
 | Testing | JUnit, Google Truth, MockK |
 | CI/CD | GitHub Actions |
 
-## ðŸ“‚ Project Structure
+---
+
+## Project Structure
 
 ```
 MeshLink/
-â”œâ”€â”€ app/                    # Application entry, DI, navigation
-â”œâ”€â”€ core/
-â”‚   â”œâ”€â”€ common/             # Extensions, constants, result types
-â”‚   â”œâ”€â”€ crypto/             # Noise XX, X25519, ChaCha20, HKDF
-â”‚   â”œâ”€â”€ network/            # Packet protocol, transports (BLE/WiFi/LAN)
-â”‚   â”œâ”€â”€ mesh/               # Routing, flooding, store-forward, anti-spam
-â”‚   â”œâ”€â”€ database/           # Room entities, DAOs, SQLCipher
-â”‚   â”œâ”€â”€ domain/             # Use cases, domain models
-â”‚   â””â”€â”€ ui/                 # Theme, shared composables
-â”œâ”€â”€ feature/
-â”‚   â”œâ”€â”€ chat/               # 1:1 and group messaging
-â”‚   â”œâ”€â”€ contacts/           # Identity management, QR pairing
-â”‚   â”œâ”€â”€ settings/           # Transport config, backup, security
-â”‚   â”œâ”€â”€ meshmap/            # Topology visualization
-â”‚   â””â”€â”€ devtools/           # Packet logs, routing table, diagnostics
-â”œâ”€â”€ docs/                   # Architecture docs, protocol spec
-â””â”€â”€ .github/workflows/      # CI/CD
+|-- app/                    # Application entry, DI, navigation
+|-- core/
+|   |-- common/             # Extensions, constants, result types
+|   |-- crypto/             # Noise XX, X25519, ChaCha20, HKDF
+|   |-- network/            # Packet protocol, transports (BLE/WiFi/LAN)
+|   |-- mesh/               # Routing, flooding, store-forward, anti-spam
+|   |-- database/           # Room entities, DAOs, SQLCipher
+|   |-- domain/             # Use cases, domain models
+|   +-- ui/                 # Theme, shared composables
+|-- feature/
+|   |-- chat/               # 1:1 and group messaging
+|   |-- contacts/           # Identity management, QR pairing
+|   |-- settings/           # Transport config, backup, security
+|   |-- meshmap/            # Topology visualization
+|   +-- devtools/           # Packet logs, routing table, diagnostics
+|-- docs/                   # Architecture docs, protocol spec
++-- .github/workflows/      # CI/CD
 ```
 
-## ðŸ”’ Security Model
+---
+
+## Security Model
 
 ### Encryption Stack
+
 ```
 Identity:     Ed25519 (signing) + X25519 (key exchange)
-Handshake:    Noise XX â€” mutual auth + identity hiding
+Handshake:    Noise XX - mutual auth + identity hiding
 Session:      ChaCha20-Poly1305 AEAD with nonce counters
 Key Derive:   HKDF-SHA256
 Database:     SQLCipher (256-bit AES)
@@ -113,28 +125,32 @@ Replay:       2048-bit sliding window
 ```
 
 ### Privacy
-- **No phone number** â€” identity is a public key pair
-- **No read receipts** â€” only Queued / Relayed / Delivered
+
+- **No phone number** - identity is a public key pair
+- **No read receipts** - only Queued / Relayed / Delivered
 - **No typing indicators**
 - **Ephemeral IDs rotate** every hour
-- **TTL excluded from signatures** â€” relay nodes can't trace origin
+- **TTL excluded from signatures** - relay nodes can't trace origin
 
-## ðŸ“¡ Wire Protocol
+---
+
+## Wire Protocol
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Ver(1) â”‚ Type(1) â”‚ Priority(1) â”‚ TTL(1)              â”‚
-â”‚ Flags(1) â”‚ FragIdx(1) â”‚ TotalFrag(1) â”‚ Pad(1)        â”‚
-â”‚ PacketID (8)                                          â”‚
-â”‚ SenderID (8)                                          â”‚
-â”‚ RecipientID (8) â€” 0x00 for broadcast                  â”‚
-â”‚ Timestamp (8)                                         â”‚
-â”‚ PayloadLen (2) â”‚ Payload (variable)                   â”‚
-â”‚ Ed25519 Signature (64)                                â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
++------------------------------------------------------+
+| Ver(1) | Type(1) | Priority(1) | TTL(1)              |
+| Flags(1) | FragIdx(1) | TotalFrag(1) | Pad(1)        |
+| PacketID (8)                                          |
+| SenderID (8)                                          |
+| RecipientID (8) - 0x00 for broadcast                  |
+| Timestamp (8)                                         |
+| PayloadLen (2) | Payload (variable)                   |
+| Ed25519 Signature (64)                                |
++------------------------------------------------------+
 ```
 
 **Priority Classes:**
+
 | Priority | Class | Behavior |
 |----------|-------|----------|
 | 0 | Emergency (SOS) | Bypasses all queues and jitter |
@@ -142,32 +158,40 @@ Replay:       2048-bit sliding window
 | 2 | Messages | Normal routing |
 | 3 | Media | Lowest priority, highest jitter |
 
-## ðŸš€ Getting Started
+---
+
+## Getting Started
 
 ### Prerequisites
+
 - Android Studio Ladybug or newer
 - JDK 17
 - Android device with BLE (API 29+)
 
 ### Build
+
 ```bash
-git clone https://github.com/your-org/meshlink.git
-cd meshlink
+git clone https://github.com/ayshishannidhya/MeshLink.git
+cd MeshLink
 ./gradlew assembleDebug
 ```
 
 ### Run Tests
+
 ```bash
 ./gradlew test          # Unit tests
 ./gradlew lint          # Lint checks
 ```
 
 ### Install
+
 ```bash
 ./gradlew installDebug
 ```
 
-## ðŸ—ºï¸ Roadmap
+---
+
+## Roadmap
 
 - [x] BLE mesh transport
 - [x] Wi-Fi Direct transport
@@ -186,7 +210,9 @@ cd meshlink
 - [ ] LoRa transport plugin
 - [ ] iOS companion app
 
-## ðŸ¤ Contributing
+---
+
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -196,12 +222,18 @@ cd meshlink
 
 Please follow the existing code style and add tests for new features.
 
-## ðŸ“„ License
+---
 
-This project is licensed under the MIT License â€” see [LICENSE](LICENSE) for details.
+## License
 
-## ðŸ™ Acknowledgments
+Copyright (c) 2026 Ayshi Shannidhya Panda. All Rights Reserved.
 
-- [Noise Protocol Framework](https://noiseprotocol.org/) â€” handshake design
-- [RFC 6479](https://tools.ietf.org/html/rfc6479) â€” replay protection
+This software is proprietary. See the copyright notice in each source file.
+
+---
+
+## Acknowledgments
+
+- [Noise Protocol Framework](https://noiseprotocol.org/) - handshake design
+- [RFC 6479](https://tools.ietf.org/html/rfc6479) - replay protection
 - The mesh networking research community
