@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  =============================================================================
+  MeshLink
+  Secure Offline Mesh Communication Platform
+
+  Copyright (c) 2026 Ayshi Shannidhya Panda.
+  All Rights Reserved.
+
+  MeshLink, the MeshLink Protocol, associated software, source code,
+  documentation, algorithms, and design architecture are proprietary
+  intellectual property of Ayshi Shannidhya Panda.
+
+  Unauthorized reproduction, modification, distribution, or commercial
+  exploitation of any part of this software or protocol is prohibited
+  without prior written permission.
+
+  Author  : Ayshi Shannidhya Panda
+  =============================================================================
+-->
+<network-security-config>
+    <!-- MeshLink is offline-first. No cleartext traffic allowed. -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

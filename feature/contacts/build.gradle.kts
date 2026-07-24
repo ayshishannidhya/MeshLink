@@ -1,0 +1,65 @@
+/*
+ * =============================================================================
+ * MeshLink
+ * Secure Offline Mesh Communication Platform
+ *
+ * Copyright (c) 2026 Ayshi Shannidhya Panda.
+ * All Rights Reserved.
+ *
+ * MeshLink, the MeshLink Protocol, associated software, source code,
+ * documentation, algorithms, and design architecture are proprietary
+ * intellectual property of Ayshi Shannidhya Panda.
+ *
+ * Unauthorized reproduction, modification, distribution, or commercial
+ * exploitation of any part of this software or protocol is prohibited
+ * without prior written permission.
+ *
+ * Author  : Ayshi Shannidhya Panda
+ * =============================================================================
+ */
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
+}
+
+android {
+    namespace = "com.meshlink.feature.contacts"
+    compileSdk = libs.versions.compileSdk.get().toInt()
+    defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = libs.versions.jvmTarget.get() }
+    buildFeatures { compose = true }
+}
+
+dependencies {
+    implementation(project(":core:common"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:ui"))
+    implementation(libs.androidx.core.ktx)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons)
+    implementation(libs.compose.animation)
+    implementation(libs.compose.navigation)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.timber)
+    // Camera + QR
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
+    implementation(libs.mlkit.barcode)
+}

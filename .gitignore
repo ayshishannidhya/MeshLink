@@ -1,0 +1,42 @@
+# MeshLink .gitignore
+
+# Build outputs
+*.iml
+.gradle/
+build/
+/local.properties
+/.idea/
+/captures
+.externalNativeBuild/
+.cxx/
+local.properties
+
+# APK files (release APKs handled via GitHub Releases)
+*.apk
+*.aab
+
+# Keystore
+*.jks
+*.keystore
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+*.swp
+*.swo
+*~
+.vscode/
+.vs/
+
+# Kotlin
+*.class
+
+# Temporary
+tmp/
+temp/

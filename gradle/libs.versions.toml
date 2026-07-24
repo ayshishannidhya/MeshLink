@@ -1,0 +1,153 @@
+# =============================================================================
+# MeshLink
+# Secure Offline Mesh Communication Platform
+#
+# Copyright (c) 2026 Ayshi Shannidhya Panda.
+# All Rights Reserved.
+#
+# MeshLink, the MeshLink Protocol, associated software, source code,
+# documentation, algorithms, and design architecture are proprietary
+# intellectual property of Ayshi Shannidhya Panda.
+#
+# Unauthorized reproduction, modification, distribution, or commercial
+# exploitation of any part of this software or protocol is prohibited
+# without prior written permission.
+#
+# Author  : Ayshi Shannidhya Panda
+# =============================================================================
+[versions]
+# Core
+kotlin = "2.0.21"
+agp = "8.7.3"
+ksp = "2.0.21-1.0.27"
+compileSdk = "35"
+minSdk = "29"
+targetSdk = "35"
+jvmTarget = "17"
+
+# Compose
+composeBom = "2024.12.01"
+composeNavigation = "2.8.5"
+
+# Architecture
+hilt = "2.53.1"
+hiltNavCompose = "1.2.0"
+lifecycle = "2.8.7"
+
+# Database
+room = "2.6.1"
+sqlcipher = "4.5.7"
+
+# Crypto
+tink = "1.15.0"
+
+# Serialization
+kotlinxSerialization = "1.7.3"
+
+# Compression
+lz4 = "1.8.0"
+
+# Async
+coroutines = "1.9.0"
+
+# Image
+coil = "2.7.0"
+
+# Camera / QR
+mlkit = "17.3.0"
+cameraX = "1.4.1"
+
+# Testing
+junit = "4.13.2"
+junitExt = "1.2.1"
+mockk = "1.13.13"
+turbine = "1.2.0"
+espresso = "3.6.1"
+truth = "1.4.4"
+
+# Logging
+timber = "5.0.1"
+
+[libraries]
+# Kotlin
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "kotlinxSerialization" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+
+# AndroidX Core
+androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.15.0" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.7.0" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.9.3" }
+
+# Compose
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material-icons = { module = "androidx.compose.material:material-icons-extended" }
+compose-animation = { module = "androidx.compose.animation:animation" }
+compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigation" }
+compose-ui-test = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+
+# Lifecycle
+lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycle" }
+
+# Hilt
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavCompose" }
+
+# Room
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
+
+# SQLCipher
+sqlcipher = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipher" }
+sqlite = { module = "androidx.sqlite:sqlite-ktx", version = "2.4.0" }
+
+# Crypto
+tink = { module = "com.google.crypto.tink:tink-android", version.ref = "tink" }
+
+# Compression
+lz4-java = { module = "org.lz4:lz4-java", version.ref = "lz4" }
+
+# Image loading
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+
+# Camera / QR
+mlkit-barcode = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkit" }
+camerax-core = { module = "androidx.camera:camera-core", version.ref = "cameraX" }
+camerax-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraX" }
+camerax-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraX" }
+camerax-view = { module = "androidx.camera:camera-view", version.ref = "cameraX" }
+
+# Logging
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
+# Testing
+junit = { module = "junit:junit", version.ref = "junit" }
+junit-ext = { module = "androidx.test.ext:junit", version.ref = "junitExt" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
