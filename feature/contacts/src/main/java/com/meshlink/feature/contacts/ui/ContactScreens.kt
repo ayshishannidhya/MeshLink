@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -438,6 +439,11 @@ private fun ScannerOverlay(scanLineOffset: Float) {
         modifier = Modifier
             .fillMaxSize()
             .clipToBounds()
+            .graphicsLayer {
+                // CRITICAL: Offscreen compositing ensures BlendMode.Clear
+                // cuts through the overlay only, not through to the window
+                compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen
+            }
     ) {
         val canvasWidth = size.width
         val canvasHeight = size.height
@@ -455,7 +461,7 @@ private fun ScannerOverlay(scanLineOffset: Float) {
             size = size
         )
 
-        // Cut out the scanner window (transparent)
+        // Cut out the scanner window (transparent to camera behind)
         drawRoundRect(
             color = Color.Transparent,
             topLeft = Offset(left, top),
