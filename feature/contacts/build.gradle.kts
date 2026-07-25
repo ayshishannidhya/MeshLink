@@ -41,6 +41,10 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
+    implementation(project(":core:database"))
+    implementation(project(":core:mesh"))
+    implementation(project(":core:network"))
+    implementation(project(":core:crypto"))
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
@@ -62,4 +66,5 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
     implementation(libs.mlkit.barcode)
+    implementation(libs.zxing.core)
 }

@@ -133,4 +133,7 @@ interface PendingPacketDao {
 
     @Query("SELECT COUNT(*) FROM pending_packets")
     suspend fun getQueueSize(): Int
+
+    @Query("DELETE FROM pending_packets")
+    suspend fun deleteAll()
 }

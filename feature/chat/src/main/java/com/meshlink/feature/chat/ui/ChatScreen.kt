@@ -1,22 +1,3 @@
-/*
- * =============================================================================
- * MeshLink
- * Secure Offline Mesh Communication Platform
- *
- * Copyright (c) 2026 Ayshi Shannidhya Panda.
- * All Rights Reserved.
- *
- * MeshLink, the MeshLink Protocol, associated software, source code,
- * documentation, algorithms, and design architecture are proprietary
- * intellectual property of Ayshi Shannidhya Panda.
- *
- * Unauthorized reproduction, modification, distribution, or commercial
- * exploitation of any part of this software or protocol is prohibited
- * without prior written permission.
- *
- * Author  : Ayshi Shannidhya Panda
- * =============================================================================
- */
 package com.meshlink.feature.chat.ui
 
 import androidx.compose.animation.animateContentSize
@@ -41,34 +22,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.meshlink.core.database.entity.MessageEntity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-/**
- * Individual chat screen with message bubbles and input bar.
- *
- * Features:
- * - Sent/received message bubbles with status indicators
- * - Encryption lock icon showing E2E status
- * - Hop count display for relayed messages
- * - Delivery status: Queued â†’ Relayed â†’ Delivered
- * - SOS quick-send button
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: ChatViewModel = hiltViewModel()
 ) {
     var messageText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
+    val messages by viewModel.messages.collectAsState()
+    val peer by viewModel.peer.collectAsState()
 
-    // Placeholder messages for demo
-    val messages = remember {
-        listOf(
-            ChatMessage("1", "Hey! Can you read this?", true, "12:00", "delivered", 0),
-            ChatMessage("2", "Yes! We're connected over BLE mesh ðŸ”—", false, "12:01", "delivered", 1),
-            ChatMessage("3", "No internet needed. This is amazing!", true, "12:02", "relayed", 0),
-            ChatMessage("4", "The message hopped through 2 devices to reach me", false, "12:03", "delivered", 2),
-        )
+    // Scroll to bottom when new messages arrive
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
+        }
     }
+
+    val peerName = peer?.displayName ?: "Peer ${viewModel.peerId.take(8)}"
+    val avatarLetter = peerName.take(1).uppercase()
 
     Scaffold(
         topBar = {
@@ -84,12 +63,12 @@ fun ChatScreen(
                             color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Text("A", fontWeight = FontWeight.Bold,
+                                Text(avatarLetter, fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer)
                             }
                         }
                         Column {
-                            Text("Alice", style = MaterialTheme.typography.titleMedium)
+                            Text(peerName, style = MaterialTheme.typography.titleMedium)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -101,7 +80,7 @@ fun ChatScreen(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    "Encrypted â€¢ 1 hop",
+                                    "Encrypted",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -162,7 +141,7 @@ fun ChatScreen(
                     FilledIconButton(
                         onClick = {
                             if (messageText.isNotBlank()) {
-                                // Send message via mesh
+                                viewModel.sendMessage(messageText)
                                 messageText = ""
                             }
                         },
@@ -174,34 +153,54 @@ fun ChatScreen(
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 8.dp),
-            state = listState,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            contentPadding = PaddingValues(vertical = 8.dp)
-        ) {
-            items(messages, key = { it.id }) { message ->
-                MessageBubble(message = message)
+        if (messages.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Send your first message!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 8.dp),
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                items(messages, key = { it.id }) { message ->
+                    MessageBubble(message = message)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun MessageBubble(message: ChatMessage) {
-    val alignment = if (message.isMine) Alignment.End else Alignment.Start
-    val bubbleColor = if (message.isMine)
+private fun MessageBubble(message: MessageEntity) {
+    val isMine = message.senderId == "local"
+    val alignment = if (isMine) Alignment.End else Alignment.Start
+    val bubbleColor = if (isMine)
         MaterialTheme.colorScheme.primary
     else
         MaterialTheme.colorScheme.surfaceContainerHigh
 
-    val textColor = if (message.isMine)
+    val textColor = if (isMine)
         MaterialTheme.colorScheme.onPrimary
     else
         MaterialTheme.colorScheme.onSurface
+
+    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val time = timeFormat.format(Date(message.timestamp))
+    val content = String(message.encryptedContent, Charsets.UTF_8)
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -211,15 +210,15 @@ private fun MessageBubble(message: ChatMessage) {
             shape = RoundedCornerShape(
                 topStart = 16.dp,
                 topEnd = 16.dp,
-                bottomStart = if (message.isMine) 16.dp else 4.dp,
-                bottomEnd = if (message.isMine) 4.dp else 16.dp
+                bottomStart = if (isMine) 16.dp else 4.dp,
+                bottomEnd = if (isMine) 4.dp else 16.dp
             ),
             color = bubbleColor,
             modifier = Modifier.widthIn(max = 280.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = message.content,
+                    text = content,
                     style = MaterialTheme.typography.bodyLarge,
                     color = textColor
                 )
@@ -229,26 +228,26 @@ private fun MessageBubble(message: ChatMessage) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = message.time,
+                        text = time,
                         style = MaterialTheme.typography.labelSmall,
                         color = textColor.copy(alpha = 0.7f)
                     )
                     if (message.hopCount > 0) {
                         Text(
-                            text = "â€¢ ${message.hopCount} hop${if (message.hopCount > 1) "s" else ""}",
+                            text = "• ${message.hopCount} hop${if (message.hopCount > 1) "s" else ""}",
                             style = MaterialTheme.typography.labelSmall,
                             color = textColor.copy(alpha = 0.6f)
                         )
                     }
-                    if (message.isMine) {
+                    if (isMine) {
                         val statusIcon = when (message.status) {
-                            "delivered" -> Icons.Default.DoneAll
-                            "relayed" -> Icons.Default.Done
-                            else -> Icons.Outlined.Schedule
+                            2 -> Icons.Default.DoneAll // Delivered
+                            1 -> Icons.Default.Done // Relayed/Sent
+                            else -> Icons.Outlined.Schedule // Queued
                         }
                         Icon(
                             statusIcon,
-                            contentDescription = message.status,
+                            contentDescription = "Status: ${message.status}",
                             modifier = Modifier.size(14.dp),
                             tint = textColor.copy(alpha = 0.7f)
                         )
@@ -258,12 +257,3 @@ private fun MessageBubble(message: ChatMessage) {
         }
     }
 }
-
-data class ChatMessage(
-    val id: String,
-    val content: String,
-    val isMine: Boolean,
-    val time: String,
-    val status: String,
-    val hopCount: Int
-)

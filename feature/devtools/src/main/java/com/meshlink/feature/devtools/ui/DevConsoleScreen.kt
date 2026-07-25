@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -34,6 +33,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.meshlink.core.common.toShortHex
 
 /**
  * Developer console for mesh diagnostics.
@@ -46,7 +47,10 @@ import androidx.compose.ui.unit.sp
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DevConsoleScreen(onNavigateBack: () -> Unit) {
+fun DevConsoleScreen(
+    onNavigateBack: () -> Unit,
+    viewModel: DevConsoleViewModel = hiltViewModel()
+) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Packets", "Routes", "Stats", "Peers")
 
@@ -74,96 +78,104 @@ fun DevConsoleScreen(onNavigateBack: () -> Unit) {
             }
 
             when (selectedTab) {
-                0 -> PacketLogTab()
-                1 -> RoutingTableTab()
-                2 -> StatsTab()
-                3 -> PeersTab()
+                0 -> PacketLogTab(viewModel)
+                1 -> RoutingTableTab(viewModel)
+                2 -> StatsTab(viewModel)
+                3 -> PeersTab(viewModel)
             }
         }
     }
 }
 
 @Composable
-private fun PacketLogTab() {
-    val demoLogs = listOf(
-        "09:54:01.234 TX ANNOUNCE ttl=7 id=a1b2c3d4",
-        "09:54:02.567 RX MESSAGE  ttl=5 id=e5f67890 from=deadbeef",
-        "09:54:03.891 TX ACK      ttl=7 id=12345678 to=deadbeef",
-        "09:54:05.123 RX ANNOUNCE ttl=6 id=87654321 from=cafebabe",
-        "09:54:06.456 RELAY MSG   ttl=4 id=e5f67890 â†’ cafebabe",
-        "09:54:08.789 RX NOISE_HS ttl=7 id=abcdef01 from=deadbeef",
-        "09:54:09.012 TX NOISE_HS ttl=7 id=fedcba98 to=deadbeef",
-        "09:54:10.345 SESSION     deadbeef â†’ ESTABLISHED (Noise XX)",
-    )
+private fun PacketLogTab(viewModel: DevConsoleViewModel) {
+    val logs by viewModel.packetLog.collectAsState()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        items(demoLogs) { log ->
-            Text(
-                text = log,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
-                color = when {
-                    log.contains("TX") -> MaterialTheme.colorScheme.primary
-                    log.contains("RX") -> MaterialTheme.colorScheme.tertiary
-                    log.contains("RELAY") -> MaterialTheme.colorScheme.secondary
-                    log.contains("SESSION") -> MaterialTheme.colorScheme.primary
-                    else -> MaterialTheme.colorScheme.onSurface
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-            )
+    if (logs.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            Text("No packets captured yet. Waiting for mesh traffic...", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-    }
-}
-
-@Composable
-private fun RoutingTableTab() {
-    val routes = listOf(
-        Triple("deadbeef", "direct (BLE)", "1 hop"),
-        Triple("cafebabe", "via deadbeef", "2 hops"),
-        Triple("12345678", "direct (WiFi)", "1 hop"),
-    )
-
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        item {
-            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                Text("Destination", Modifier.weight(1f), fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.labelMedium)
-                Text("Next Hop", Modifier.weight(1f), fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.labelMedium)
-                Text("Distance", Modifier.weight(0.5f), fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.labelMedium)
-            }
-            HorizontalDivider()
-        }
-        items(routes) { (dest, nextHop, hops) ->
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                Text(dest, Modifier.weight(1f), fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp)
-                Text(nextHop, Modifier.weight(1f), fontSize = 13.sp)
-                Text(hops, Modifier.weight(0.5f), fontSize = 13.sp)
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            items(logs) { log ->
+                Text(
+                    text = log,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 12.sp,
+                    color = when {
+                        log.contains("TX") -> MaterialTheme.colorScheme.primary
+                        log.contains("RX") -> MaterialTheme.colorScheme.tertiary
+                        log.contains("RELAY") -> MaterialTheme.colorScheme.secondary
+                        log.contains("SESSION") -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.onSurface
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                )
             }
         }
     }
 }
 
 @Composable
-private fun StatsTab() {
+private fun RoutingTableTab(viewModel: DevConsoleViewModel) {
+    val activePeers by viewModel.activePeers.collectAsState()
+
+    if (activePeers.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            Text("No routes. Discover peers to build routing table.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            item {
+                Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                    Text("Destination", Modifier.weight(1f), fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium)
+                    Text("Next Hop", Modifier.weight(1f), fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium)
+                    Text("Transport", Modifier.weight(1f), fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium)
+                    Text("Hops", Modifier.weight(0.5f), fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium)
+                }
+                HorizontalDivider()
+            }
+            items(activePeers) { peer ->
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    Text(peer.peerId.toShortHex(), Modifier.weight(1f), fontFamily = FontFamily.Monospace,
+                        fontSize = 13.sp)
+                    Text("direct", Modifier.weight(1f), fontSize = 13.sp)
+                    Text(peer.bestTransport.displayName, Modifier.weight(1f), fontSize = 13.sp)
+                    Text("1", Modifier.weight(0.5f), fontSize = 13.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatsTab(viewModel: DevConsoleViewModel) {
+    val statsState by viewModel.meshStats.collectAsState()
+
+    val uptimeSecs = statsState.uptimeMs / 1000
+    val h = uptimeSecs / 3600
+    val m = (uptimeSecs % 3600) / 60
+    val s = uptimeSecs % 60
+    val uptimeStr = "${h}h ${m}m ${s}s"
+
     val stats = listOf(
-        "Packets Sent" to "342",
-        "Packets Received" to "518",
-        "Packets Relayed" to "176",
-        "Packets Dropped (dedup)" to "89",
-        "Packets Dropped (rate limit)" to "3",
-        "Active Sessions (Noise)" to "2",
-        "SAF Queue Size" to "5",
-        "BLE MTU" to "512 bytes",
-        "Avg Latency" to "45ms",
-        "Uptime" to "2h 34m",
+        "Packets Sent" to statsState.packetsSent.toString(),
+        "Packets Received" to statsState.packetsReceived.toString(),
+        "Packets Relayed" to statsState.packetsRelayed.toString(),
+        "Packets Dropped" to statsState.packetsDropped.toString(),
+        "Active Peers" to statsState.activePeers.toString(),
+        "Pending Messages (SAF)" to statsState.pendingMessages.toString(),
+        "Avg Hop Count" to "%.1f".format(statsState.averageHopCount),
+        "Uptime" to uptimeStr
     )
 
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -182,47 +194,44 @@ private fun StatsTab() {
 }
 
 @Composable
-private fun PeersTab() {
-    val peers = listOf(
-        PeerInfo("deadbeef", "Alice", -55, "BLE", true, 0.85f),
-        PeerInfo("cafebabe", "Bob", -72, "BLE", true, 0.62f),
-        PeerInfo("12345678", "Charlie", -40, "WiFi", true, 0.91f),
-        PeerInfo("87654321", "Unknown", -88, "BLE", false, 0.30f),
-    )
+private fun PeersTab(viewModel: DevConsoleViewModel) {
+    val activePeers by viewModel.activePeers.collectAsState()
 
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        items(peers) { peer ->
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                )
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(peer.name, fontWeight = FontWeight.Bold)
-                        Text(if (peer.active) "â— Active" else "â—‹ Stale",
-                            color = if (peer.active) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelSmall)
-                    }
-                    Text("ID: ${peer.id}", fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text("RSSI: ${peer.rssi}dBm", fontSize = 12.sp)
-                        Text("Transport: ${peer.transport}", fontSize = 12.sp)
-                        Text("Trust: ${"%.0f".format(peer.trust * 100)}%", fontSize = 12.sp)
+    if (activePeers.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            Text("No peers detected. Make sure Bluetooth is enabled.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            items(activePeers) { peer ->
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(peer.displayName ?: "Unknown", fontWeight = FontWeight.Bold)
+                            Text(if (peer.isActive) "● Active" else "○ Stale",
+                                color = if (peer.isActive) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelSmall)
+                        }
+                        Text("ID: ${peer.peerId.toShortHex()}", fontFamily = FontFamily.Monospace,
+                            fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Text("RSSI: ${peer.rssi}dBm", fontSize = 12.sp)
+                            Text("Transport: ${peer.bestTransport.displayName}", fontSize = 12.sp)
+                            Text("Trust: ${"%.0f".format(peer.reliability * 100)}%", fontSize = 12.sp)
+                            Text("Battery: ${peer.batteryLevel}%", fontSize = 12.sp)
+                        }
                     }
                 }
             }
         }
     }
 }
-
-private data class PeerInfo(
-    val id: String, val name: String, val rssi: Int,
-    val transport: String, val active: Boolean, val trust: Float
-)

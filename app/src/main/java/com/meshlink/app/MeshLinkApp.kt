@@ -30,6 +30,10 @@ import timber.log.Timber
  *
  * Initializes dependency injection via Hilt, sets up logging,
  * and creates notification channels for the mesh relay service.
+ *
+ * Note: MeshRelayService is started from MainActivity (not here)
+ * because Android 12+ prohibits starting foreground services
+ * from a background context like Application.
  */
 @HiltAndroidApp
 class MeshLinkApp : Application() {

@@ -17,33 +17,17 @@
  * Author  : Ayshi Shannidhya Panda
  * =============================================================================
  */
-plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-}
+package com.meshlink.core.domain.repository
 
-android {
-    namespace = "com.meshlink.core.common"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+import com.meshlink.core.mesh.MeshStats
+import com.meshlink.core.mesh.routing.NeighborEntry
+import com.meshlink.core.network.transport.TransportType
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = libs.versions.jvmTarget.get()
-    }
-}
-
-dependencies {
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.timber)
-    testImplementation(libs.junit)
-    testImplementation(libs.truth)
-    implementation(libs.datastore.preferences)
+interface MeshRepository {
+    val activePeers: Flow<List<NeighborEntry>>
+    val meshStats: StateFlow<MeshStats>
+    val isMeshActive: StateFlow<Boolean>
+    suspend fun setTransportEnabled(type: TransportType, enabled: Boolean)
 }

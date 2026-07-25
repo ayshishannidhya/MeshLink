@@ -24,6 +24,9 @@ import com.meshlink.core.common.currentTimeMillis
 import com.meshlink.core.common.toShortHex
 import com.meshlink.core.network.transport.DiscoveredPeer
 import com.meshlink.core.network.transport.TransportType
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,6 +47,13 @@ import javax.inject.Singleton
 class NeighborTable @Inject constructor() {
 
     private val peers = LinkedHashMap<String, NeighborEntry>(32)
+
+    private val _activePeersFlow = MutableStateFlow<List<NeighborEntry>>(emptyList())
+    val activePeersFlow: StateFlow<List<NeighborEntry>> = _activePeersFlow.asStateFlow()
+
+    private fun emitCurrentState() {
+        _activePeersFlow.value = getActivePeers()
+    }
 
     /**
      * Update peer info from a transport discovery event.
@@ -71,6 +81,7 @@ class NeighborTable @Inject constructor() {
             )
             Timber.d("New neighbor: ${key} via ${discoveredPeer.transport}")
         }
+        emitCurrentState()
     }
 
     /**
@@ -96,6 +107,7 @@ class NeighborTable @Inject constructor() {
                 transports = setOf(transport)
             )
         }
+        emitCurrentState()
     }
 
     /**
@@ -127,6 +139,7 @@ class NeighborTable @Inject constructor() {
             peers.remove(key)
             Timber.d("Pruned stale neighbor: ${entry.peerId.toShortHex()}")
         }
+        emitCurrentState()
     }
 
     /**
@@ -140,6 +153,7 @@ class NeighborTable @Inject constructor() {
                     .coerceAtMost(MeshConstants.REPUTATION_MAX)
             )
         }
+        emitCurrentState()
     }
 
     /**
@@ -153,6 +167,7 @@ class NeighborTable @Inject constructor() {
                     .coerceAtLeast(MeshConstants.REPUTATION_MIN)
             )
         }
+        emitCurrentState()
     }
 
     /** Total number of tracked peers (including stale). */

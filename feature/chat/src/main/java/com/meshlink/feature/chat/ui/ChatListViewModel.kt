@@ -1,51 +1,53 @@
-/*
- * =============================================================================
- * MeshLink
- * Secure Offline Mesh Communication Platform
- *
- * Copyright (c) 2026 Ayshi Shannidhya Panda.
- * All Rights Reserved.
- *
- * MeshLink, the MeshLink Protocol, associated software, source code,
- * documentation, algorithms, and design architecture are proprietary
- * intellectual property of Ayshi Shannidhya Panda.
- *
- * Unauthorized reproduction, modification, distribution, or commercial
- * exploitation of any part of this software or protocol is prohibited
- * without prior written permission.
- *
- * Author  : Ayshi Shannidhya Panda
- * =============================================================================
- */
 package com.meshlink.feature.chat.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.meshlink.core.database.dao.ConversationDao
+import com.meshlink.core.domain.repository.MeshRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class ChatListViewModel @Inject constructor() : ViewModel() {
+class ChatListViewModel @Inject constructor(
+    private val conversationDao: ConversationDao,
+    private val meshRepository: MeshRepository
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ChatListUiState())
-    val uiState: StateFlow<ChatListUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<ChatListUiState> = combine(
+        conversationDao.getAllConversations(),
+        meshRepository.activePeers,
+        meshRepository.isMeshActive
+    ) { conversations, peers, meshActive ->
+        ChatListUiState(
+            conversations = conversations.map { conv ->
+                ConversationUiModel(
+                    id = conv.id,
+                    title = conv.title ?: "Peer ${conv.id.take(8)}",
+                    lastMessage = conv.lastMessagePreview ?: "No messages yet",
+                    timeAgo = formatTimeAgo(conv.lastMessageTimestamp),
+                    unreadCount = conv.unreadCount,
+                    isOnline = false, // Will be true when real-time connectivity is added
+                    avatarLetter = (conv.title ?: "P").take(1).uppercase()
+                )
+            },
+            isMeshActive = meshActive,
+            peerCount = peers.size,
+            isLoading = false
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChatListUiState())
 
-    init {
-        loadConversations()
-    }
-
-    private fun loadConversations() {
-        viewModelScope.launch {
-            _uiState.value = ChatListUiState(
-                conversations = emptyList(),
-                isMeshActive = true,
-                peerCount = 0,
-                isLoading = false
-            )
+    private fun formatTimeAgo(timestamp: Long): String {
+        if (timestamp == 0L) return ""
+        val diff = System.currentTimeMillis() - timestamp
+        return when {
+            diff < 60_000 -> "now"
+            diff < 3_600_000 -> "${diff / 60_000}m"
+            diff < 86_400_000 -> "${diff / 3_600_000}h"
+            else -> "${diff / 86_400_000}d"
         }
     }
 }

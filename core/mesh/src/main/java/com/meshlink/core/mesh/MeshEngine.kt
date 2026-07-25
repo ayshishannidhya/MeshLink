@@ -31,6 +31,7 @@ import com.meshlink.core.network.packet.PacketCodec
 import com.meshlink.core.network.packet.PacketType
 import com.meshlink.core.network.transport.MeshTransport
 import com.meshlink.core.network.transport.TransportPacket
+import com.meshlink.core.network.transport.TransportType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -74,9 +75,15 @@ class MeshEngine @Inject constructor(
     /** Flow of fully-processed incoming messages for the application layer. */
     val incomingMessages: SharedFlow<MeshPacket> = _incomingMessages.asSharedFlow()
 
+    val neighbors: NeighborTable get() = neighborTable
+
     private val _meshStats = MutableStateFlow(MeshStats())
     /** Observable mesh statistics. */
     val meshStats: StateFlow<MeshStats> = _meshStats.asStateFlow()
+
+    private val _isActive = MutableStateFlow(false)
+    /** Whether the mesh engine is currently running. */
+    val isActive: StateFlow<Boolean> = _isActive.asStateFlow()
 
     private var isRunning = false
     private var localPeerId: ByteArray = ByteArray(0)
@@ -87,6 +94,7 @@ class MeshEngine @Inject constructor(
     suspend fun start(peerId: ByteArray = MeshConstants.generateId()) {
         if (isRunning) return
         isRunning = true
+        _isActive.value = true
         localPeerId = peerId
 
         Timber.i("MeshEngine starting with peer ID: ${peerId.toShortHex()}")
@@ -120,11 +128,23 @@ class MeshEngine @Inject constructor(
         scope.launch { storeForwardManager.startRetryLoop(::sendPacketToTransport) }
     }
 
+    suspend fun setTransportEnabled(type: TransportType, enabled: Boolean) {
+        val transport = transports.find { it.transportType == type } ?: return
+        if (enabled && !transport.isActive) {
+            transport.start()
+            Timber.i("Transport ${type} enabled")
+        } else if (!enabled && transport.isActive) {
+            transport.stop()
+            Timber.i("Transport ${type} disabled")
+        }
+    }
+
     /**
      * Stop the mesh engine and all transports.
      */
     suspend fun stop() {
         isRunning = false
+        _isActive.value = false
         scope.coroutineContext.cancelChildren()
         transports.forEach { it.stop() }
         Timber.i("MeshEngine stopped")

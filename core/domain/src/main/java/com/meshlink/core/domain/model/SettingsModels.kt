@@ -17,33 +17,19 @@
  * Author  : Ayshi Shannidhya Panda
  * =============================================================================
  */
-plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-}
+package com.meshlink.core.domain.model
 
-android {
-    namespace = "com.meshlink.core.common"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+import com.meshlink.core.common.PowerMode
+import com.meshlink.core.common.ScanInterval
 
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = libs.versions.jvmTarget.get()
-    }
-}
-
-dependencies {
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.timber)
-    testImplementation(libs.junit)
-    testImplementation(libs.truth)
-    implementation(libs.datastore.preferences)
-}
+data class SettingsState(
+    val displayName: String,
+    val avatarUri: String?,
+    val fingerprint: String,
+    val publicKeyHex: String,
+    val bleEnabled: Boolean,
+    val wifiDirectEnabled: Boolean,
+    val lanEnabled: Boolean,
+    val powerMode: PowerMode,
+    val scanInterval: ScanInterval
+)

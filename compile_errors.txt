@@ -1,0 +1,135 @@
+Starting a Gradle Daemon, 2 busy and 1 incompatible and 5 stopped Daemons could not be reused, use --status for details
+Configuration on demand is an incubating feature.
+
+> Configure project :feature:contacts
+WARNING: The option setting 'android.defaults.buildfeatures.buildconfig=true' is deprecated.
+The current default is 'false'.
+It will be removed in version 9.0 of the Android Gradle plugin.
+To keep using this feature, add the following to your module-level build.gradle files:
+    android.buildFeatures.buildConfig = true
+or from Android Studio, click: `Refactor` > `Migrate BuildConfig to Gradle Build Files`.
+
+> Task :core:database:preBuild UP-TO-DATE
+> Task :feature:contacts:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:network:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:domain:preBuild UP-TO-DATE
+> Task :core:crypto:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:mesh:preBuild UP-TO-DATE
+> Task :core:ui:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:mesh:preDebugBuild UP-TO-DATE
+> Task :core:database:preDebugBuild UP-TO-DATE
+> Task :core:domain:preDebugBuild UP-TO-DATE
+> Task :core:crypto:preBuild UP-TO-DATE
+> Task :core:network:preBuild UP-TO-DATE
+> Task :core:ui:preBuild UP-TO-DATE
+> Task :feature:contacts:preBuild UP-TO-DATE
+> Task :core:ui:preDebugBuild UP-TO-DATE
+> Task :core:common:preBuild UP-TO-DATE
+> Task :core:network:preDebugBuild UP-TO-DATE
+> Task :core:crypto:preDebugBuild UP-TO-DATE
+> Task :feature:contacts:preDebugBuild UP-TO-DATE
+> Task :core:common:preDebugBuild UP-TO-DATE
+> Task :core:mesh:generateDebugResValues UP-TO-DATE
+> Task :feature:contacts:generateDebugBuildConfig UP-TO-DATE
+> Task :core:ui:generateDebugBuildConfig UP-TO-DATE
+> Task :core:common:generateDebugBuildConfig UP-TO-DATE
+> Task :core:network:generateDebugBuildConfig UP-TO-DATE
+> Task :core:domain:generateDebugResValues UP-TO-DATE
+> Task :core:database:generateDebugResValues UP-TO-DATE
+> Task :core:crypto:generateDebugBuildConfig UP-TO-DATE
+> Task :core:crypto:generateDebugResValues UP-TO-DATE
+> Task :core:common:generateDebugResValues UP-TO-DATE
+> Task :core:network:generateDebugResValues UP-TO-DATE
+> Task :core:ui:generateDebugResValues UP-TO-DATE
+> Task :feature:contacts:generateDebugResValues UP-TO-DATE
+> Task :feature:contacts:generateDebugResources UP-TO-DATE
+> Task :core:mesh:generateDebugResources UP-TO-DATE
+> Task :core:database:generateDebugResources UP-TO-DATE
+> Task :core:crypto:generateDebugResources UP-TO-DATE
+> Task :core:domain:generateDebugResources UP-TO-DATE
+> Task :core:network:generateDebugResources UP-TO-DATE
+> Task :core:common:generateDebugResources UP-TO-DATE
+> Task :core:ui:generateDebugResources UP-TO-DATE
+> Task :core:domain:packageDebugResources UP-TO-DATE
+> Task :core:ui:packageDebugResources UP-TO-DATE
+> Task :core:mesh:packageDebugResources UP-TO-DATE
+> Task :feature:contacts:packageDebugResources UP-TO-DATE
+> Task :core:crypto:packageDebugResources UP-TO-DATE
+> Task :core:common:packageDebugResources UP-TO-DATE
+> Task :core:network:packageDebugResources UP-TO-DATE
+> Task :core:database:packageDebugResources UP-TO-DATE
+> Task :core:domain:parseDebugLocalResources UP-TO-DATE
+> Task :core:crypto:parseDebugLocalResources UP-TO-DATE
+> Task :feature:contacts:parseDebugLocalResources UP-TO-DATE
+> Task :core:network:parseDebugLocalResources UP-TO-DATE
+> Task :core:mesh:parseDebugLocalResources UP-TO-DATE
+> Task :core:common:parseDebugLocalResources UP-TO-DATE
+> Task :core:database:parseDebugLocalResources UP-TO-DATE
+> Task :core:ui:parseDebugLocalResources UP-TO-DATE
+> Task :core:ui:generateDebugRFile UP-TO-DATE
+> Task :core:domain:generateDebugRFile UP-TO-DATE
+> Task :core:mesh:generateDebugRFile UP-TO-DATE
+> Task :core:domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:mesh:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:crypto:generateDebugRFile UP-TO-DATE
+> Task :core:network:generateDebugRFile UP-TO-DATE
+> Task :core:common:generateDebugRFile UP-TO-DATE
+> Task :core:database:generateDebugRFile UP-TO-DATE
+> Task :core:database:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:crypto:javaPreCompileDebug UP-TO-DATE
+> Task :core:network:javaPreCompileDebug UP-TO-DATE
+> Task :core:ui:javaPreCompileDebug UP-TO-DATE
+> Task :core:mesh:generateDebugBuildConfig UP-TO-DATE
+> Task :core:domain:generateDebugBuildConfig UP-TO-DATE
+> Task :feature:contacts:generateDebugRFile UP-TO-DATE
+> Task :core:database:generateDebugBuildConfig UP-TO-DATE
+> Task :core:mesh:javaPreCompileDebug UP-TO-DATE
+> Task :core:domain:javaPreCompileDebug UP-TO-DATE
+> Task :core:database:javaPreCompileDebug UP-TO-DATE
+> Task :core:common:compileDebugKotlin UP-TO-DATE
+> Task :core:common:javaPreCompileDebug UP-TO-DATE
+> Task :core:common:compileDebugJavaWithJavac FROM-CACHE
+> Task :core:common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:common:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:crypto:compileDebugKotlin UP-TO-DATE
+> Task :core:crypto:compileDebugJavaWithJavac FROM-CACHE
+> Task :core:crypto:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:crypto:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:network:compileDebugKotlin UP-TO-DATE
+> Task :core:network:compileDebugJavaWithJavac FROM-CACHE
+> Task :core:network:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:network:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:database:kspDebugKotlin UP-TO-DATE
+> Task :core:database:compileDebugKotlin UP-TO-DATE
+> Task :core:ui:compileDebugKotlin UP-TO-DATE
+> Task :core:ui:compileDebugJavaWithJavac FROM-CACHE
+> Task :core:ui:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:database:compileDebugJavaWithJavac FROM-CACHE
+> Task :core:database:transformDebugClassesWithAsm UP-TO-DATE
+> Task :core:database:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:database:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:mesh:kspDebugKotlin UP-TO-DATE
+> Task :core:mesh:compileDebugKotlin UP-TO-DATE
+> Task :core:mesh:compileDebugJavaWithJavac FROM-CACHE
+> Task :core:mesh:transformDebugClassesWithAsm UP-TO-DATE
+> Task :core:mesh:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:mesh:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:domain:kspDebugKotlin UP-TO-DATE
+> Task :core:domain:compileDebugKotlin UP-TO-DATE
+> Task :core:domain:compileDebugJavaWithJavac FROM-CACHE
+> Task :core:domain:transformDebugClassesWithAsm UP-TO-DATE
+> Task :core:domain:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:contacts:kspDebugKotlin UP-TO-DATE
+> Task :feature:contacts:compileDebugKotlin UP-TO-DATE
+
+[Incubating] Problems report is available at: file:///C:/Users/Ankit/Desktop/MeshLink/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 30s
+89 actionable tasks: 7 from cache, 82 up-to-date

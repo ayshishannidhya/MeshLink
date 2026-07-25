@@ -35,6 +35,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -69,8 +70,24 @@ import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.QRCodeWriter
+import com.meshlink.core.domain.repository.IdentityRepository
 import timber.log.Timber
 import java.util.concurrent.Executors
+import android.graphics.Bitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import android.graphics.Color as AndroidColor
+import android.net.Uri
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.meshlink.core.database.entity.PeerEntity
+import com.meshlink.core.mesh.routing.NeighborEntry
+import com.meshlink.core.network.transport.TransportType
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
 
 // ── Contact List Screen ──────────────────────────────────────────────────
 
@@ -80,9 +97,10 @@ fun ContactListScreen(
     onNavigateBack: () -> Unit,
     onNavigateToDiscovery: () -> Unit,
     onNavigateToQrPairing: () -> Unit,
-    onNavigateToChat: (String) -> Unit
+    onNavigateToChat: (String) -> Unit,
+    viewModel: ContactsViewModel = hiltViewModel()
 ) {
-    Scaffold(
+    Scaffold(   
         topBar = {
             TopAppBar(
                 title = { Text("Identities", fontWeight = FontWeight.Bold) },
@@ -104,18 +122,91 @@ fun ContactListScreen(
             }
         }
     ) { padding ->
-        Box(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentAlignment = Alignment.Center
+        val peers by viewModel.peers.collectAsState()
+
+        if (peers.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Outlined.People, null, Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f))
+                    Spacer(Modifier.height(16.dp))
+                    Text("No identities saved", style = MaterialTheme.typography.titleMedium)
+                    Text("Discover nearby peers or scan a QR code",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(peers, key = { it.id }) { peer ->
+                    PeerContactCard(
+                        peer = peer,
+                        onClick = { onNavigateToChat(peer.id) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PeerContactCard(peer: PeerEntity, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Outlined.People, null, Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f))
-                Spacer(Modifier.height(16.dp))
-                Text("No identities saved", style = MaterialTheme.typography.titleMedium)
-                Text("Discover nearby peers or scan a QR code",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Avatar
+            Surface(
+                modifier = Modifier.size(48.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = peer.displayName.take(1).uppercase(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = peer.displayName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "Key: ${peer.publicKeyHex.take(16)}...",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            // Trust indicator
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = if (peer.trustScore >= 0.7f)
+                    MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Text(
+                    text = if (peer.trustScore >= 0.7f) "Verified" else "Peer",
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
         }
     }
@@ -125,7 +216,10 @@ fun ContactListScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiscoveryScreen(onNavigateBack: () -> Unit) {
+fun DiscoveryScreen(
+    onNavigateBack: () -> Unit,
+    viewModel: DiscoveryViewModel = hiltViewModel()
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -138,19 +232,84 @@ fun DiscoveryScreen(onNavigateBack: () -> Unit) {
             )
         }
     ) { padding ->
-        Box(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentAlignment = Alignment.Center
+        val discoveredPeers by viewModel.discoveredPeers.collectAsState()
+
+        if (discoveredPeers.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(modifier = Modifier.size(48.dp))
+                    Spacer(Modifier.height(24.dp))
+                    Text("Scanning for nearby devices...",
+                        style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Using Bluetooth LE + Wi-Fi Direct + LAN",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(discoveredPeers, key = { it.peerId.contentHashCode() }) { peer ->
+                    DiscoveredPeerCard(
+                        entry = peer,
+                        onSave = { viewModel.savePeer(peer) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiscoveredPeerCard(entry: NeighborEntry, onSave: () -> Unit) {
+    val context = LocalContext.current
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CircularProgressIndicator(modifier = Modifier.size(48.dp))
-                Spacer(Modifier.height(24.dp))
-                Text("Scanning for nearby devices...",
-                    style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(8.dp))
-                Text("Using Bluetooth LE + Wi-Fi Direct + LAN",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Transport icon
+            val transport = entry.bestTransport
+            Icon(
+                imageVector = when (transport) {
+                    TransportType.BLE -> Icons.Default.Bluetooth
+                    TransportType.WIFI_DIRECT -> Icons.Default.Wifi
+                    TransportType.LAN -> Icons.Default.Lan
+                },
+                contentDescription = transport.displayName,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.displayName ?: "Unknown Device",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "${transport.displayName} • RSSI: ${entry.rssi}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            FilledTonalButton(
+                onClick = {
+                    onSave()
+                    Toast.makeText(context, "Peer saved!", Toast.LENGTH_SHORT).show()
+                }
+            ) {
+                Text("Add")
             }
         }
     }
@@ -160,10 +319,29 @@ fun DiscoveryScreen(onNavigateBack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QrPairingScreen(onNavigateBack: () -> Unit) {
+fun QrPairingScreen(
+    onNavigateBack: () -> Unit,
+    viewModel: QrPairingViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     var showScanner by remember { mutableStateOf(false) }
     var scannedData by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.pairingResult.collect { result ->
+            when (result) {
+                is PairingResult.Success -> {
+                    Toast.makeText(context, "✅ Paired with ${result.peerName}", Toast.LENGTH_LONG).show()
+                }
+                is PairingResult.AlreadyPaired -> {
+                    Toast.makeText(context, "Already paired with ${result.peerName}", Toast.LENGTH_SHORT).show()
+                }
+                is PairingResult.Error -> {
+                    Toast.makeText(context, "❌ ${result.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
@@ -210,6 +388,7 @@ fun QrPairingScreen(onNavigateBack: () -> Unit) {
                         scannedData = data
                         showScanner = false
                         Timber.d("QR scanned: $data")
+                        viewModel.onQrScanned(data)
                     }
                 )
             } else {
@@ -231,19 +410,42 @@ fun QrPairingScreen(onNavigateBack: () -> Unit) {
                     }
 
                     // QR Code display (your identity)
+                    val qrData = remember { viewModel.getQrData() }
+                    val qrBitmap = remember(qrData) {
+                        try {
+                            generateQrBitmap(
+                                data = qrData,
+                                size = 512
+                            )
+                        } catch (e: Exception) {
+                            Timber.e(e, "QR generation failed")
+                            null
+                        }
+                    }
+
                     Surface(
                         modifier = Modifier.size(240.dp),
                         shape = MaterialTheme.shapes.large,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        color = Color.White,
                         tonalElevation = 2.dp
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            // Placeholder QR - in production, generate real QR from public key
-                            Icon(
-                                Icons.Outlined.QrCode2, null,
-                                Modifier.size(100.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            if (qrBitmap != null) {
+                                Image(
+                                    bitmap = qrBitmap,
+                                    contentDescription = "Your MeshLink identity QR code",
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Outlined.QrCode2, "QR Code",
+                                    Modifier.size(100.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
 
@@ -320,81 +522,88 @@ private fun QrScannerView(
         AndroidView(
             factory = { ctx ->
                 val previewView = PreviewView(ctx).apply {
+                    // Use COMPATIBLE mode with TextureView for correct z-ordering
+                    // with Compose overlays. PERFORMANCE mode uses SurfaceView which
+                    // renders on a separate layer and causes black scan area issues.
                     implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                     scaleType = PreviewView.ScaleType.FILL_CENTER
                 }
 
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
                 cameraProviderFuture.addListener({
-                    val cameraProvider = cameraProviderFuture.get()
+                    try {
+                        val cameraProvider = cameraProviderFuture.get()
 
-                    // Preview use case
-                    val preview = Preview.Builder()
-                        .build()
-                        .also {
-                            it.surfaceProvider = previewView.surfaceProvider
-                        }
+                        // Preview use case
+                        val preview = Preview.Builder()
+                            .build()
+                            .also {
+                                it.surfaceProvider = previewView.surfaceProvider
+                            }
 
-                    // Image analysis for QR detection
-                    val imageAnalysis = ImageAnalysis.Builder()
-                        .setTargetResolution(Size(1280, 720))
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build()
-                        .also { analysis ->
-                            analysis.setAnalyzer(cameraExecutor) { imageProxy ->
-                                if (isScanned) {
-                                    imageProxy.close()
-                                    return@setAnalyzer
-                                }
+                        // Image analysis for QR detection
+                        val imageAnalysis = ImageAnalysis.Builder()
+                            .setTargetResolution(Size(1280, 720))
+                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                            .build()
+                            .also { analysis ->
+                                analysis.setAnalyzer(cameraExecutor) { imageProxy ->
+                                    if (isScanned) {
+                                        imageProxy.close()
+                                        return@setAnalyzer
+                                    }
 
-                                val mediaImage = imageProxy.image
-                                if (mediaImage != null) {
-                                    val inputImage = InputImage.fromMediaImage(
-                                        mediaImage,
-                                        imageProxy.imageInfo.rotationDegrees
-                                    )
+                                    val mediaImage = imageProxy.image
+                                    if (mediaImage != null) {
+                                        val inputImage = InputImage.fromMediaImage(
+                                            mediaImage,
+                                            imageProxy.imageInfo.rotationDegrees
+                                        )
 
-                                    val scanner = BarcodeScanning.getClient()
-                                    scanner.process(inputImage)
-                                        .addOnSuccessListener { barcodes ->
-                                            for (barcode in barcodes) {
-                                                if (barcode.valueType == Barcode.TYPE_TEXT ||
-                                                    barcode.valueType == Barcode.TYPE_UNKNOWN
-                                                ) {
-                                                    barcode.rawValue?.let { value ->
-                                                        if (!isScanned) {
-                                                            isScanned = true
-                                                            Timber.d("QR detected: $value")
-                                                            onQrCodeScanned(value)
+                                        val scanner = BarcodeScanning.getClient()
+                                        scanner.process(inputImage)
+                                            .addOnSuccessListener { barcodes ->
+                                                for (barcode in barcodes) {
+                                                    if (barcode.valueType == Barcode.TYPE_TEXT ||
+                                                        barcode.valueType == Barcode.TYPE_UNKNOWN
+                                                    ) {
+                                                        barcode.rawValue?.let { value ->
+                                                            if (!isScanned) {
+                                                                isScanned = true
+                                                                Timber.d("QR detected: $value")
+                                                                onQrCodeScanned(value)
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
-                                        .addOnFailureListener { e ->
-                                            Timber.e(e, "Barcode scanning failed")
-                                        }
-                                        .addOnCompleteListener {
-                                            imageProxy.close()
-                                        }
-                                } else {
-                                    imageProxy.close()
+                                            .addOnFailureListener { e ->
+                                                Timber.e(e, "Barcode scanning failed")
+                                            }
+                                            .addOnCompleteListener {
+                                                imageProxy.close()
+                                            }
+                                    } else {
+                                        imageProxy.close()
+                                    }
                                 }
                             }
-                        }
 
-                    // Bind to lifecycle
-                    try {
-                        cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
-                            lifecycleOwner,
-                            CameraSelector.DEFAULT_BACK_CAMERA,
-                            preview,
-                            imageAnalysis
-                        )
-                        Timber.d("Camera bound successfully")
+                        // Bind to lifecycle
+                        try {
+                            cameraProvider.unbindAll()
+                            cameraProvider.bindToLifecycle(
+                                lifecycleOwner,
+                                CameraSelector.DEFAULT_BACK_CAMERA,
+                                preview,
+                                imageAnalysis
+                            )
+                            Timber.d("Camera bound successfully")
+                        } catch (e: Exception) {
+                            Timber.e(e, "Camera binding failed")
+                        }
                     } catch (e: Exception) {
-                        Timber.e(e, "Camera binding failed")
+                        Timber.e(e, "Camera provider initialization failed")
                     }
                 }, ContextCompat.getMainExecutor(ctx))
 
@@ -435,13 +644,14 @@ private fun QrScannerView(
 private fun ScannerOverlay(scanLineOffset: Float) {
     val primaryColor = MaterialTheme.colorScheme.primary
 
+    // Draw the dimmed overlay with cutout on an offscreen canvas
     Canvas(
         modifier = Modifier
             .fillMaxSize()
             .clipToBounds()
             .graphicsLayer {
-                // CRITICAL: Offscreen compositing ensures BlendMode.Clear
-                // cuts through the overlay only, not through to the window
+                // Offscreen compositing ensures BlendMode.Clear cuts through
+                // this overlay canvas only, not through to the window background
                 compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen
             }
     ) {
@@ -461,7 +671,7 @@ private fun ScannerOverlay(scanLineOffset: Float) {
             size = size
         )
 
-        // Cut out the scanner window (transparent to camera behind)
+        // Cut out the scanner window (makes it transparent to show camera behind)
         drawRoundRect(
             color = Color.Transparent,
             topLeft = Offset(left, top),
@@ -469,6 +679,24 @@ private fun ScannerOverlay(scanLineOffset: Float) {
             cornerRadius = CornerRadius(24f, 24f),
             blendMode = BlendMode.Clear
         )
+    }
+
+    // Draw corner accents and scan line on a SEPARATE canvas (no BlendMode.Clear)
+    // This prevents BlendMode.Clear from erasing the corner decorations
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .clipToBounds()
+    ) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+
+        // Same scanner window dimensions (must match the cutout above)
+        val windowSize = canvasWidth * 0.7f
+        val left = (canvasWidth - windowSize) / 2f
+        val top = (canvasHeight - windowSize) / 2.5f
+        val right = left + windowSize
+        val bottom = top + windowSize
 
         // Scanner window border
         drawRoundRect(
@@ -517,6 +745,12 @@ private fun ScannedResultCard(
     data: String,
     onDismiss: () -> Unit
 ) {
+    // Parse the meshlink URI for display
+    val parsedUri = try { android.net.Uri.parse(data) } catch (e: Exception) { null }
+    val peerName = parsedUri?.getQueryParameter("name") ?: "Unknown Peer"
+    val peerKey = parsedUri?.getQueryParameter("pk") ?: data
+    val isMeshLink = parsedUri?.scheme == "meshlink" && parsedUri?.host == "pair"
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -530,13 +764,16 @@ private fun ScannedResultCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    Icons.Default.CheckCircle, null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    if (isMeshLink) Icons.Default.CheckCircle else Icons.Default.Warning,
+                    null,
+                    tint = if (isMeshLink) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(28.dp)
                 )
                 Spacer(Modifier.width(12.dp))
                 Text(
-                    "Peer Identity Scanned",
+                    if (isMeshLink) "✅ Peer Paired: $peerName"
+                    else "Invalid QR Code",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -550,10 +787,10 @@ private fun ScannedResultCard(
             Spacer(Modifier.height(12.dp))
 
             // Show truncated public key
-            val displayKey = if (data.length > 64) {
-                data.take(32) + "..." + data.takeLast(16)
+            val displayKey = if (peerKey.length > 32) {
+                peerKey.take(16) + "..." + peerKey.takeLast(8)
             } else {
-                data
+                peerKey
             }
 
             Surface(
@@ -561,7 +798,7 @@ private fun ScannedResultCard(
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.08f)
             ) {
                 Text(
-                    text = displayKey,
+                    text = if (isMeshLink) "Key: $displayKey" else displayKey,
                     modifier = Modifier.padding(12.dp),
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
@@ -572,17 +809,54 @@ private fun ScannedResultCard(
             Spacer(Modifier.height(16.dp))
 
             Button(
-                onClick = {
-                    // In production: initiate Noise XX handshake with scanned public key
-                    Timber.d("Initiating pairing with: $data")
-                },
+                onClick = onDismiss, // Peer already saved on scan — just dismiss
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = if (isMeshLink) ButtonDefaults.buttonColors()
+                         else ButtonDefaults.buttonColors(
+                             containerColor = MaterialTheme.colorScheme.error
+                         )
             ) {
-                Icon(Icons.Default.Handshake, null)
+                Icon(
+                    if (isMeshLink) Icons.Default.CheckCircle else Icons.Default.Close,
+                    null
+                )
                 Spacer(Modifier.width(8.dp))
-                Text("Start Secure Pairing")
+                Text(if (isMeshLink) "Pairing Complete ✓" else "Dismiss")
             }
         }
     }
+}
+
+// ── QR Code Generation ───────────────────────────────────────────────────
+
+/**
+ * Generates a QR code bitmap from the given data string using ZXing.
+ *
+ * @param data The string to encode in the QR code
+ * @param size The width/height in pixels of the output bitmap
+ * @return An ImageBitmap suitable for Compose Image composable
+ */
+private fun generateQrBitmap(data: String, size: Int): ImageBitmap {
+    val hints = mapOf(
+        EncodeHintType.MARGIN to 1,
+        EncodeHintType.CHARACTER_SET to "UTF-8"
+    )
+    val bitMatrix = QRCodeWriter().encode(
+        data,
+        BarcodeFormat.QR_CODE,
+        size,
+        size,
+        hints
+    )
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    for (x in 0 until size) {
+        for (y in 0 until size) {
+            bitmap.setPixel(
+                x, y,
+                if (bitMatrix.get(x, y)) AndroidColor.BLACK else AndroidColor.WHITE
+            )
+        }
+    }
+    return bitmap.asImageBitmap()
 }

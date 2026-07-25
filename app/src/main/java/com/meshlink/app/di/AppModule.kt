@@ -31,14 +31,20 @@ import com.meshlink.core.mesh.routing.NeighborTable
 import com.meshlink.core.mesh.store.StoreForwardManager
 import com.meshlink.core.network.packet.PacketCodec
 import com.meshlink.core.network.transport.*
+import com.meshlink.core.common.MeshPreferences
+import com.meshlink.core.domain.repository.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class PeerId
 /**
  * Hilt module providing all core dependencies.
  * Everything flows from here through constructor injection.
@@ -69,11 +75,16 @@ object AppModule {
 
     @Provides
     @Singleton
+    @PeerId
+    fun provideLocalPeerId(): ByteArray = com.meshlink.core.common.MeshConstants.generateId()
+
+    @Provides
+    @Singleton
     @IntoSet
     fun provideBleTransport(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        @PeerId peerId: ByteArray
     ): MeshTransport {
-        val peerId = com.meshlink.core.common.MeshConstants.generateId()
         return BleTransport(context, peerId)
     }
 
@@ -81,9 +92,9 @@ object AppModule {
     @Singleton
     @IntoSet
     fun provideWifiDirectTransport(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        @PeerId peerId: ByteArray
     ): MeshTransport {
-        val peerId = com.meshlink.core.common.MeshConstants.generateId()
         return WifiDirectTransport(context, peerId)
     }
 
@@ -91,9 +102,9 @@ object AppModule {
     @Singleton
     @IntoSet
     fun provideLanTransport(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        @PeerId peerId: ByteArray
     ): MeshTransport {
-        val peerId = com.meshlink.core.common.MeshConstants.generateId()
         return LanTransport(context, peerId)
     }
 
@@ -161,4 +172,28 @@ object AppModule {
 
     @Provides
     fun providePendingPacketDao(db: MeshLinkDatabase): PendingPacketDao = db.pendingPacketDao()
+
+    @Provides
+    @Singleton
+    fun provideMeshPreferences(@ApplicationContext context: Context): MeshPreferences {
+        return MeshPreferences(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMeshRepository(meshEngine: MeshEngine): MeshRepository {
+        return MeshRepositoryImpl(meshEngine)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSettingsRepository(meshPreferences: MeshPreferences): SettingsRepository {
+        return SettingsRepositoryImpl(meshPreferences)
+    }
+
+    @Provides
+    @Singleton
+    fun provideIdentityRepository(keyPairGenerator: MeshKeyPairGenerator): IdentityRepository {
+        return IdentityRepositoryImpl(keyPairGenerator)
+    }
 }
