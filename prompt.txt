@@ -1,0 +1,3 @@
+› read this root project or https://github.com/ayshishannidhya/MeshLink this link, but this app wont connect and still i cant send messages still even trying nothing appears in
+  dev console inside app its like its just a still app and do nothing make it work or you can view code from here too "C:\Users\Ankit\Desktop\bitchat" or if you want i can copy
+  paste here too for your ease
